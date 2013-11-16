@@ -23,5 +23,12 @@ module PimpMyChangelog
     def contributors
       changelog.scan(/@([\w-]+)/).flatten.uniq.sort
     end
+
+    def commit_shas
+      puts "Changelog received: #{changelog.inspect}"
+      scanned = changelog.scan(/(\b[0-9a-f]{8,40}\b)/).flatten.uniq.sort
+      puts "Changelog commit sha scanned: #{scanned.inspect}"
+      scanned
+    end
   end
 end

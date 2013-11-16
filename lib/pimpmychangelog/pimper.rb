@@ -19,7 +19,7 @@ module PimpMyChangelog
       parsed_changelog = Parser.new(changelog)
 
       linkify_changelog(parsed_changelog.content) +
-        links_definitions(parsed_changelog.issues, parsed_changelog.contributors)
+        links_definitions(parsed_changelog.issues, parsed_changelog.contributors, parsed_changelog.commit_shas)
     end
 
     protected
@@ -32,20 +32,22 @@ module PimpMyChangelog
     def linkify_changelog(changelog)
       changelog.
         gsub(ISSUE_NUMBER_REGEXP, '\1[#\2][]\3').
-        gsub(CONTRIBUTOR_REGEXP, '\1[@\2][]\3')
+        gsub(CONTRIBUTOR_REGEXP, '\1[@\2][]\3').
+        gsub(COMMIT_SHA_REGEXP, '\1[\2][]\3')
     end
 
     # The following regexp ensure that the issue or contributor is
     # not wrapped between brackets (aka: is a link)
     ISSUE_NUMBER_REGEXP = /(^|[^\[])#(\d+)($|[^\]])/
     CONTRIBUTOR_REGEXP = /(^|[^\[])@([\w-]+)($|[^\]])/
+    COMMIT_SHA_REGEXP = /(^|[^\[])(\b[0-9a-f]{8,40}\b)($|[^\]])/
 
     # @param [Array] issues An array of issue numbers
     # @param [Array] contributors An array of contributors github ids
     #
     # @return [String] A list of link definitions
-    def links_definitions(issues, contributors)
-      return '' if issues.empty? && contributors.empty?
+    def links_definitions(issues, contributors, commit_shas)
+      return '' if issues.empty? && contributors.empty? && commit_shas.empty?
 
       issues_list = issues.map do |issue|
         "[##{issue}]: https://github.com/#{user}/#{project}/issues/#{issue}"
@@ -55,7 +57,13 @@ module PimpMyChangelog
         "[@#{contributor}]: https://github.com/#{contributor}"
       end
 
-      ([SEPARATOR] + issues_list + contributors_list).join("\n")
+      puts "Commit SHAs: #{commit_shas.inspect}"
+      commit_sha_list = commit_shas.map do |commit_sha|
+        "[#{commit_sha}]: https://github.com/#{user}/#{project}/commit/#{commit_sha}"
+      end
+
+      puts "Commit SHA list final: #{commit_sha_list.inspect}"
+      ([SEPARATOR] + issues_list + contributors_list + commit_sha_list).join("\n")
     end
   end
 end

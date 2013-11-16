@@ -50,6 +50,18 @@ describe Pimper do
       end
     end
 
+    context "when the changelog contains a commit sha" do
+      let(:changelog) { 'Feature A added in this commit d5db9ff4' }
+
+      it "should wrap the issue number to make a link" do
+        better_changelog.should include("[d5db9ff4][]")
+      end
+
+      it "should append the link definition at the end of the changelog" do
+        better_changelog.split("\n").last.should == "[d5db9ff4]: https://github.com/gregbell/activeadmin/commit/d5db9ff4"
+      end
+    end
+
     context "when the changelog contains issue numbers or contributors which are links" do
       let(:changelog) { '[@pcreux][] closes [#123][]' }
 
